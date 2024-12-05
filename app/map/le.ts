@@ -1,4 +1,5 @@
-import { AppConfig, MapLayer, Position, Ui } from "@isardsat/le-client";
+import type * as Le from "@isardsat/le-components/types";
+import { setIn } from "timm";
 
 const INITIAL_CENTER = [0, 15] as [number, number];
 const INITIAL_ZOOM = 12;
@@ -6,7 +7,7 @@ const ZOOM_LIMITS = [8, 25] as [number, number];
 
 const BASEMAP_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-const UI_CONFIG: Ui = {
+const UI_CONFIG: Le.Ui = {
   // Positions
   positionCreateDelete: false,
   positionDifference: false,
@@ -43,7 +44,7 @@ const UI_CONFIG: Ui = {
   // Debug
 };
 
-const BASEMAP_CONFIG: MapLayer = {
+const BASEMAP_CONFIG: Le.MapLayer = {
   id: "basemap",
   title: "Basemap",
   notListed: true,
@@ -52,31 +53,28 @@ const BASEMAP_CONFIG: MapLayer = {
   zIndex: 0,
 };
 
-let APP_CONFIG: AppConfig = {
-  id: "Jesac",
+let APP_CONFIG: Le.AppConfig = {
+  id: "SoilMoisture",
   title: "Soil Moisture",
   ui: UI_CONFIG,
   authorized: ".*",
   presets: {
     main: {
-      id: "s2a",
-      positions: [
-        {
-          center: INITIAL_CENTER,
-          zoom: INITIAL_ZOOM,
-          time: "2024-01-01",
-        },
-      ],
+      id: "sm",
+      title: "Soil Moisture",
+      position: {
+        center: INITIAL_CENTER,
+        zoom: INITIAL_ZOOM,
+        time: "2024-01-01",
+      },
+      ui: {},
       navConfigs: [
         {
           dimReqs: {
             zoom: {
               range: ZOOM_LIMITS,
             },
-          },
-          time: {
-            range: ["2018-01-01T00:00", new Date()],
-            timeSpec: "day",
+            time: { range: ["2018-01-01", "2024-12-31"], timeSpec: "month" },
           },
         },
       ],
@@ -98,10 +96,15 @@ let APP_CONFIG: AppConfig = {
       },
     },
   },
+  presetId: "main",
 };
 
-export const getInitialConfig = (position?: Position) => {
+export const getInitialConfig = (position?: Le.Position): Le.AppConfig => {
   if (!position) return APP_CONFIG;
 
-  return setIn(APP_CONFIG, ["presets", "main", "position"], position);
+  return setIn(
+    APP_CONFIG,
+    ["presets", "main", "position"],
+    position
+  ) as Le.AppConfig;
 };

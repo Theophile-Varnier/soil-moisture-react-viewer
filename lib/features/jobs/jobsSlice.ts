@@ -1,9 +1,9 @@
-import { JobDto } from "@/lib/api/smApi";
+import type * as SA from "@/lib/api/smApi";
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { selectFilters } from "../filters/filtersSlice";
 
 export interface JobsState {
-  jobs: JobDto[] | undefined;
+  jobs: SA.JobDto[] | undefined;
 }
 
 export const jobsSlice = createSlice({
