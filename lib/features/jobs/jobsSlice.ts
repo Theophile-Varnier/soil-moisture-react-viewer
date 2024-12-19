@@ -3,13 +3,13 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import { selectFilters } from "../filters/filtersSlice";
 
 export interface JobsState {
-  jobs: SA.JobDto[] | undefined;
+  jobs: SA.JobDto[];
 }
 
 export const jobsSlice = createSlice({
   name: "jobs",
   initialState: {
-    jobs: undefined,
+    jobs: [],
   } as JobsState,
   reducers: {
     setJobs: (state, action) => {

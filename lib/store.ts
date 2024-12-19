@@ -3,6 +3,7 @@ import auth from "./features/auth/authSlice";
 import executions from "./features/executions/executionsSlice";
 import filters from "./features/filters/filtersSlice";
 import jobs from "./features/jobs/jobsSlice";
+import map from "./features/map/mapSlice";
 import { smApi } from "./api/smApi";
 import listenerMiddleware from "./listerner";
 
@@ -13,6 +14,7 @@ export const makeStore = () => {
       executions,
       filters,
       jobs,
+      map,
       [smApi.reducerPath]: smApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>

@@ -23,7 +23,7 @@ const UI_CONFIG: Le.Ui = {
   objectCreate: false,
   objectCreatePoint: false,
   objectCreateLine: false,
-  objectCreateArea: true,
+  objectCreateArea: false,
   objectDelete: false,
   objectUpdate: false,
   pinBoxAnchorsForPointFeatures: false,
@@ -34,10 +34,10 @@ const UI_CONFIG: Le.Ui = {
   numAutoGraphs: 0,
   addPinValuesOnlyForShownLayers: false,
   // Map tools
-  mapTools: false,
+  mapTools: true,
   settings: false,
   // Time/elevation controls
-  timeElevation: false,
+  timeElevation: true,
   // Toolbox
   initialTool: null,
   featureSelectConfigs: [], // conditional
@@ -67,18 +67,29 @@ let APP_CONFIG: Le.AppConfig = {
         zoom: INITIAL_ZOOM,
         time: "2024-01-01",
       },
-      ui: {},
-      navConfigs: [
-        {
-          dimReqs: {
-            zoom: {
-              range: ZOOM_LIMITS,
+      navConfig: {
+        zoom: {
+          range: ZOOM_LIMITS,
+        },
+        time: { range: ["2018-01-01", "2024-12-31"], timeSpec: "month" },
+      },
+      layers: {
+        sm: {
+          type: "variable",
+          datasetId: "sm/e48d2319-8824-4715-8a18-645a9ad67f98/whc",
+          opacity: 1,
+          variableId: "whc",
+          noPinValue: true,
+          autoAddGraphs: [],
+          valueMin: 0,
+          valueMax: 0.5,
+          subsetReq: {
+            dimReqs: { time: { coord: "current" } },
+            representedDimReqs: {
+              time: { coord: "current", filterTime: "day" },
             },
-            time: { range: ["2018-01-01", "2024-12-31"], timeSpec: "month" },
           },
         },
-      ],
-      layers: {
         // s2a: {
         //   type: 'variable',
         //   datasetId: DATASET_ID,

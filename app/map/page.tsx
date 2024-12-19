@@ -3,7 +3,7 @@ import styles from "./map.module.css";
 import { useEffect, useRef, useState } from "react";
 import { useMeasure } from "../hooks/useMeasure";
 import { Aggregations } from "../components/Aggregations";
-import { MapTopLayer } from "../components/MapTopLayer";
+import { MapTopLayerProps } from "../components/MapTopLayer";
 import { getInitialConfig } from "./le";
 import {
   createStore,
@@ -13,6 +13,12 @@ import {
 } from "@isardsat/le-components";
 import EmbeddedLobeliaExplore from "@isardsat/le-components/components/App";
 import type * as Le from "@isardsat/le-components/types";
+import { Provider } from "react-redux";
+import JobRender from "../components/JobRender";
+import useGetDisplayedJobs from "../hooks/useGetDisplayedJobs";
+import { geometry, geometryCollection } from "@turf/helpers";
+import center from "@turf/center";
+import { getCircumscribingZoomLevel } from "../gral/helpers";
 const { initActions } = actions;
 
 function CoreMap({ width, height }: { width: number; height: number }) {
@@ -21,12 +27,24 @@ function CoreMap({ width, height }: { width: number; height: number }) {
   const [appConfigProcessed, setAppConfigProcessed] = useState<boolean>(false);
   const [appConfig, setAppConfig] = useState(getInitialConfig());
 
-  const WrappedMapTopLayer = (props) => (
-    <MapTopLayer
-      width={width}
-      height={height}
-      variableProjection={props.variableProjection}
-    />
+  const jobs = useGetDisplayedJobs();
+
+  const WrappedMapTopLayer = ({
+    width,
+    height,
+    variableProjection,
+  }: MapTopLayerProps) => (
+    <div style={{ position: "absolute" }}>
+      <svg width={width} height={height}>
+        {jobs?.map((job) => (
+          <JobRender
+            key={job.id}
+            job={job}
+            variableProjection={variableProjection}
+          />
+        ))}
+      </svg>
+    </div>
   );
 
   const dataPackage = { lang: "en", appConfig: appConfig };
@@ -66,19 +84,31 @@ function CoreMap({ width, height }: { width: number; height: number }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!jobs || !jobs.length || !refMap.current) return;
+    const collection = geometryCollection(
+      jobs.map((job) => geometry(job.aoi.type, job.aoi.coordinates))
+    );
+    const newBbox = center(collection);
+    refMap.current.panZoomTo(
+      [newBbox.geometry.coordinates[0], newBbox.geometry.coordinates[1]],
+      getCircumscribingZoomLevel(collection.geometry)
+    );
+  }, [jobs]);
+
   if (!leStore) return <div>Loading...</div>;
 
   return (
     <>
-      <EmbeddedLobeliaExplore
-        ref={refMap}
-        dataPackage={dataPackage}
-        width={width}
-        height={height}
-        store={leStore}
-        onStoreCreated={setStore}
-        MapTopLayer={WrappedMapTopLayer}
-      ></EmbeddedLobeliaExplore>
+      <Provider store={leStore}>
+        <EmbeddedLobeliaExplore
+          ref={refMap}
+          dataPackage={dataPackage}
+          width={width}
+          height={height}
+          UserMapTopLayer={WrappedMapTopLayer}
+        ></EmbeddedLobeliaExplore>
+      </Provider>
       <Aggregations></Aggregations>
     </>
   );
