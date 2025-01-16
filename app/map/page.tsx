@@ -1,10 +1,11 @@
 "use client";
 import styles from "./map.module.css";
+import "@isardsat/le-components/styles";
 import { useEffect, useRef, useState } from "react";
 import { useMeasure } from "../hooks/useMeasure";
 import { Aggregations } from "../components/Aggregations";
 import { MapTopLayerProps } from "../components/MapTopLayer";
-import { getInitialConfig } from "./le";
+import { availableVariables, getInitialConfig, getJobLayer } from "./le";
 import {
   createStore,
   actions,
@@ -13,19 +14,29 @@ import {
 } from "@isardsat/le-components";
 import EmbeddedLobeliaExplore from "@isardsat/le-components/components/App";
 import type * as Le from "@isardsat/le-components/types";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 import JobRender from "../components/JobRender";
 import useGetDisplayedJobs from "../hooks/useGetDisplayedJobs";
 import { geometry, geometryCollection } from "@turf/helpers";
 import center from "@turf/center";
 import { getCircumscribingZoomLevel } from "../gral/helpers";
+import {
+  selectDisplayedVariable,
+  setDisplayedVariable,
+} from "@/lib/features/map/mapSlice";
+import { Select } from "@mantine/core";
+import { useAppSelector } from "@/lib/hooks";
 const { initActions } = actions;
+import { merge, setIn } from "timm";
 
 function CoreMap({ width, height }: { width: number; height: number }) {
   const [leStore, setStore] = useState<Le.StoreType>();
   const refMap = useRef<typeof EmbeddedLobeliaExplore>(null);
   const [appConfigProcessed, setAppConfigProcessed] = useState<boolean>(false);
   const [appConfig, setAppConfig] = useState(getInitialConfig());
+  const displayedVariable = useAppSelector(selectDisplayedVariable);
+
+  const dispatch = useDispatch();
 
   const jobs = useGetDisplayedJobs();
 
@@ -60,6 +71,7 @@ function CoreMap({ width, height }: { width: number; height: number }) {
       appVersion: process.env.APP_VERSION,
       ga: process.env.NEXT_PUBLIC_GA,
     });
+    console.log(process.env.NEXT_PUBLIC_LE_DATA_URL);
 
     const onStoreChange = () => {
       const state = leStore?.getState();
@@ -76,7 +88,6 @@ function CoreMap({ width, height }: { width: number; height: number }) {
     setStore(localStore);
     const unsubscribe = localStore.subscribe(onStoreChange);
 
-    console.log({ dataPackage });
     localStore.dispatch(initActions(dataPackage));
     setAppConfigProcessed(true);
     return () => {
@@ -96,10 +107,34 @@ function CoreMap({ width, height }: { width: number; height: number }) {
     );
   }, [jobs]);
 
+  useEffect(() => {
+    if (!jobs || !jobs.length || !refMap.current) return;
+    let tmpAppConfig = getInitialConfig();
+    let layers = {};
+    jobs.reduce((acc, job) => {
+      acc[job.id] = getJobLayer(job.id, displayedVariable);
+      return acc;
+    }, layers);
+    layers = merge(tmpAppConfig.presets.main.layers, layers);
+    tmpAppConfig = setIn(
+      tmpAppConfig,
+      ["presets", "main", "layers"],
+      layers
+    ) as Le.AppConfig;
+    setAppConfig(tmpAppConfig);
+  }, [jobs, displayedVariable]);
+
   if (!leStore) return <div>Loading...</div>;
 
   return (
     <>
+      <div className={styles.filtersWrapper}>
+        <Select
+          data={availableVariables}
+          value={displayedVariable}
+          onChange={(v) => dispatch(setDisplayedVariable(v))}
+        ></Select>
+      </div>
       <Provider store={leStore}>
         <EmbeddedLobeliaExplore
           ref={refMap}

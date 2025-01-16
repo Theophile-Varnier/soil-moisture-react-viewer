@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { JobExecutionCreated } from "@/lib/api/smApi";
 import { DateTime } from "luxon";
+import { AvailableVariable } from "@/app/map/le";
 
 export interface MapState {
   selectedAggregationId: string | undefined;
+  displayedVariable: AvailableVariable;
 }
 
 export interface Aggregation {
@@ -20,14 +22,19 @@ export const mapSlice = createSlice({
   name: "map",
   initialState: {
     selectedAggregationId: undefined,
+    displayedVariable: "fc",
   } as MapState,
   reducers: {
     setSelectedAggregationId: (state, action) => {
       state.selectedAggregationId = action.payload;
     },
+    setDisplayedVariable: (state, action) => {
+      state.displayedVariable = action.payload;
+    },
   },
   selectors: {
     selectSelectedAggregationId: (state) => state.selectedAggregationId,
+    selectDisplayedVariable: (state) => state.displayedVariable,
   },
 });
 
@@ -82,6 +89,8 @@ export const aggregationsFromExecutions = (
     return acc;
   }, []);
 
-export const { setSelectedAggregationId } = mapSlice.actions;
-export const { selectSelectedAggregationId } = mapSlice.selectors;
+export const { setSelectedAggregationId, setDisplayedVariable } =
+  mapSlice.actions;
+export const { selectSelectedAggregationId, selectDisplayedVariable } =
+  mapSlice.selectors;
 export default mapSlice.reducer;

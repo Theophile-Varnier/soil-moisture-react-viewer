@@ -1,3 +1,11 @@
 .mapWrapper {
     flex: 1;
+    position: relative;
+}
+
+.filtersWrapper {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 199;
 }

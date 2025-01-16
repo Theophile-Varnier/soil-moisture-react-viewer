@@ -7,41 +7,133 @@ const ZOOM_LIMITS = [8, 25] as [number, number];
 
 const BASEMAP_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-const UI_CONFIG: Le.Ui = {
-  // Positions
-  positionCreateDelete: false,
-  positionDifference: false,
-  abDimensions: [],
-  // Control block
+// const UI_CONFIG: Le.Ui = {
+//   // Positions
+//   positionCreateDelete: false,
+//   positionDifference: false,
+//   abDimensions: [],
+//   // Control block
+//   controlBlock: false,
+//   cbHeader: false,
+//   cbCopyright: false,
+//   cbPresets: false,
+//   cbLayers: false,
+//   cbOpenDrawer: {},
+//   // Objects
+//   objectCreate: false,
+//   objectCreatePoint: false,
+//   objectCreateLine: false,
+//   objectCreateArea: false,
+//   objectDelete: false,
+//   objectUpdate: false,
+//   pinBoxAnchorsForPointFeatures: false,
+//   // Graphs
+//   graphCreate: true,
+//   graphDelete: false,
+//   graphDifference: false,
+//   numAutoGraphs: 0,
+//   addPinValuesOnlyForShownLayers: false,
+//   // Map tools
+//   mapTools: true,
+//   settings: false,
+//   // Time/elevation controls
+//   timeElevation: true,
+//   // Toolbox
+//   initialTool: null,
+//   featureSelectConfigs: [], // conditional
+//   // Debug
+// };
+
+export type AvailableVariable =
+  | "fc"
+  | "wp"
+  | "wp_stp"
+  | "fc_std"
+  | "sm100m"
+  | "sm1km";
+
+export const availableVariables: AvailableVariable[] = [
+  "fc",
+  "wp",
+  "wp_stp",
+  "fc_std",
+  "sm100m",
+  "sm1km",
+];
+
+export const variablesParams = {
+  fc: {
+    datasetId: "whc",
+    valueMin: 0,
+    valueMax: 0.5,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+  wp: {
+    datasetId: "whc",
+    valueMin: 0,
+    valueMax: 0.25,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+  wp_stp: {
+    datasetId: "whc",
+    valueMin: 0,
+    valueMax: 0.1,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+  fc_std: {
+    datasetId: "whc",
+    valueMin: 0,
+    valueMax: 0.1,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+  sm100m: {
+    datasetId: "sm100m",
+    valueMin: 0,
+    valueMax: 0.5,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+  sm1km: {
+    datasetId: "sm1km",
+    valueMin: 0,
+    valueMax: 0.5,
+    colormapId: "inferno",
+    colormapInvert: true,
+  },
+};
+
+export const getJobLayer = (id: string, variable: AvailableVariable) => {
+  const params = variablesParams[variable];
+  return {
+    id,
+    type: "variable",
+    datasetId: `sm/${id}/${params.datasetId}`,
+    opacity: 1,
+    variableId: variable,
+    noPinValue: true,
+    autoAddGraphs: ["v(t)"],
+    valueMin: 0,
+    valueMax: 0.25,
+    colormapId: "inferno",
+    colormapInvert: true,
+    subsetReq: {
+      dimReqs: { time: { coord: "current" } },
+      representedDimReqs: {
+        time: { coord: "current", filterTime: "day" },
+      },
+    },
+  };
+};
+
+const UI_CONFIG = {
+  settings: false,
   controlBlock: false,
-  cbHeader: false,
-  cbCopyright: false,
-  cbPresets: false,
-  cbLayers: false,
-  cbOpenDrawer: {},
-  // Objects
-  objectCreate: false,
-  objectCreatePoint: false,
   objectCreateLine: false,
   objectCreateArea: false,
-  objectDelete: false,
-  objectUpdate: false,
-  pinBoxAnchorsForPointFeatures: false,
-  // Graphs
-  graphCreate: false,
-  graphDelete: false,
-  graphDifference: false,
-  numAutoGraphs: 0,
-  addPinValuesOnlyForShownLayers: false,
-  // Map tools
-  mapTools: true,
-  settings: false,
-  // Time/elevation controls
-  timeElevation: true,
-  // Toolbox
-  initialTool: null,
-  featureSelectConfigs: [], // conditional
-  // Debug
 };
 
 const BASEMAP_CONFIG: Le.MapLayer = {
@@ -74,22 +166,24 @@ let APP_CONFIG: Le.AppConfig = {
         time: { range: ["2018-01-01", "2024-12-31"], timeSpec: "month" },
       },
       layers: {
-        sm: {
-          type: "variable",
-          datasetId: "sm/e48d2319-8824-4715-8a18-645a9ad67f98/whc",
-          opacity: 1,
-          variableId: "whc",
-          noPinValue: true,
-          autoAddGraphs: [],
-          valueMin: 0,
-          valueMax: 0.5,
-          subsetReq: {
-            dimReqs: { time: { coord: "current" } },
-            representedDimReqs: {
-              time: { coord: "current", filterTime: "day" },
-            },
-          },
-        },
+        // sm: {
+        //   type: "variable",
+        //   datasetId: "sm/e48d2319-8824-4715-8a18-645a9ad67f98/whc",
+        //   opacity: 1,
+        //   variableId: "whc",
+        //   noPinValue: true,
+        //   autoAddGraphs: ["v(t)"],
+        //   valueMin: 0,
+        //   valueMax: 0.25,
+        //   colormapId: "inferno",
+        //   colormapInvert: true,
+        //   subsetReq: {
+        //     dimReqs: { time: { coord: "current" } },
+        //     representedDimReqs: {
+        //       time: { coord: "current", filterTime: "day" },
+        //     },
+        //   },
+        // },
         // s2a: {
         //   type: 'variable',
         //   datasetId: DATASET_ID,
@@ -111,11 +205,8 @@ let APP_CONFIG: Le.AppConfig = {
 };
 
 export const getInitialConfig = (position?: Le.Position): Le.AppConfig => {
-  if (!position) return APP_CONFIG;
+  const res = { ...APP_CONFIG };
+  if (!position) return res;
 
-  return setIn(
-    APP_CONFIG,
-    ["presets", "main", "position"],
-    position
-  ) as Le.AppConfig;
+  return setIn(res, ["presets", "main", "position"], position) as Le.AppConfig;
 };
